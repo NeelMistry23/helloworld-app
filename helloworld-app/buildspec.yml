@@ -1,0 +1,43 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      java: corretto11
+  pre_build:
+    commands:
+      - echo Just listing basic information about the environment
+      - which mvn
+      - mvn -version
+      - java -version
+      - pwd
+      - echo Listing files in the current directory
+      - ls -la
+      - echo Checking if pom.xml exists
+      - cat pom.xml
+  build:
+    commands:
+      - echo Build started on `date`
+      - echo Running Maven clean package with debug info
+      - mvn clean package -X -e
+      - echo Checking target directory after build
+      - ls -la target/
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Checking if WAR file exists before copying
+      - if [ -f "target/HelloWorld-1.war" ]; then
+          echo "WAR file found, copying...";
+          cp target/HelloWorld-1.war ./HelloWorld-1.war;
+        else
+          echo "WAR file not found, listing target directory contents:";
+          ls -la target/ || echo "target directory does not exist";
+          echo "Looking for any WAR files:";
+          find . -name "*.war" || echo "No WAR files found";
+        fi
+      - echo Listing all files that will be included in artifact
+      - ls -la
+artifacts:
+  files:
+    - appspec.yml
+    - "*.war"
+  name: codebuild-artifact.zip
